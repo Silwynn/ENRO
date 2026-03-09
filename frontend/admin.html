@@ -1,1 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoWatch - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        admin: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        eco: {
+                            500: '#22c55e',
+                            600: '#16a34a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .sidebar-link { transition: all 0.3s; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: rgba(255,255,255,0.1); border-left: 4px solid #22c55e; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+    </style>
+</head>
+<body class="bg-admin-100 min-h-screen">
+
+    <!-- LOGIN SECTION -->
+    <section id="admin-login" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-admin-800 to-admin-900">
+        <div class="w-full max-w-md">
+            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div class="bg-admin-800 p-6 text-center">
+                    <div class="w-16 h-16 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shield-alt text-2xl text-white"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-white">Admin Portal</h1>
+                    <p class="text-admin-300 text-sm mt-1">EcoWatch Management System</p>
+                </div>
+                
+                <form onsubmit="handleAdminLogin(event)" class="p-8 space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Admin ID</label>
+                        <div class="relative">
+                            <i class="fas fa-user-shield absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="admin-id" required class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-admin-500 focus:ring-2 focus:ring-admin-200 outline-none transition-all" placeholder="Enter admin ID">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="password" id="admin-password" required class="w-full pl-12 pr-12 py-3 rounded-xl border border-gray-200 focus:border-admin-500 focus:ring-2 focus:ring-admin-200 outline-none transition-all" placeholder="••••••••">
+                            <button type="button" onclick="toggleAdminPassword()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-admin-600">
+                                <i class="fas fa-eye" id="admin-eye-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 text-admin-600 rounded border-gray-300 focus:ring-admin-500">
+                            <span class="text-gray-600">Remember session</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-admin-800 text-white rounded-xl font-semibold hover:bg-admin-700 transition-all shadow-lg">
+                        Access Dashboard
+                    </button>
+                    
+                    <div class="text-center">
+                        <a href="index.html" class="text-sm text-gray-500 hover:text-admin-600 transition-colors">
+                            <i class="fas fa-arrow-left mr-1"></i> Back to User Portal
+                        </a>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="mt-6 text-center text-admin-300 text-sm">
+                <i class="fas fa-lock mr-1"></i> Secure encrypted connection
+            </div>
+        </div>
+    </section>
+
+    <!-- DASHBOARD SECTION -->
+    <section id="admin-dashboard" class="hidden">
+        <!-- Sidebar -->
+        <aside class="fixed left-0 top-0 h-full w-64 bg-admin-800 text-white z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300" id="sidebar">
+            <div class="p-6 border-b border-admin-700">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-eco-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-leaf text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-lg">EcoWatch</h2>
+                        <p class="text-xs text-admin-400">Admin System</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="mt-6">
+                <a href="#" onclick="showSection('overview')" class="sidebar-link active flex items-center gap-3 px-6 py-3 text-admin-100 hover:text-white" id="nav-overview">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span>Overview</span>
+                </a>
+                <a href="#" onclick="showSection('reports')" class="sidebar-link flex items-center gap-3 px-6 py-3 text-admin-100 hover:text-white" id="nav-reports">
+                    <i class="fas fa-clipboard-list w-5"></i>
+                    <span>Reports</span>
+                    <span class="ml-auto bg-eco-500 text-xs px-2 py-1 rounded-full" id="sidebar-count">0</span>
+                </a>
+                <a href="#" onclick="showSection('users')" class="sidebar-link flex items-center gap-3 px-6 py-3 text-admin-100 hover:text-white" id="nav-users">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Users</span>
+                </a>
+                <a href="#" onclick="showSection('analytics')" class="sidebar-link flex items-center gap-3 px-6 py-3 text-admin-100 hover:text-white" id="nav-analytics">
+                    <i class="fas fa-chart-pie w-5"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" onclick="showSection('settings')" class="sidebar-link flex items-center gap-3 px-6 py-3 text-admin-100 hover:text-white" id="nav-settings">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-admin-700">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-admin-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium" id="admin-name">Administrator</p>
+                        <p class="text-xs text-admin-400">Super Admin</p>
+                    </div>
+                </div>
+                <button onclick="adminLogout()" class="w-full py-2 bg-admin-700 hover:bg-red-600 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Mobile Sidebar Toggle -->
+        <button onclick="toggleSidebar()" class="md:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-admin-800 text-white rounded-lg flex items-center justify-center shadow-lg">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Main Content -->
+        <main class="md:ml-64 min-h-screen">
+            <!-- Top Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+                <div class="flex items-center justify-between px-8 py-4">
+                    <h1 class="text-2xl font-bold text-gray-800" id="page-title">Dashboard Overview</h1>
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-admin-500 focus:ring-2 focus:ring-admin-200 outline-none w-64">
+                        </div>
+                        <button class="relative p-2 text-gray-600 hover:text-admin-600 transition-colors">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-8">
+                <!-- OVERVIEW SECTION -->
+                <div id="section-overview" class="fade-in">
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total Reports</p>
+                                    <p class="text-3xl font-bold text-gray-900 mt-1" id="stat-total">0</p>
+                                </div>
+                                <div class="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-inbox text-blue-600 text-2xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center text-sm text-green-600">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                <span id="total-trend">0% from last month</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Pending Review</p>
+                                    <p class="text-3xl font-bold text-orange-600 mt-1" id="stat-pending">0</p>
+                                </div>
+                                <div class="w-14 h-14 bg-orange-50 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clock text-orange-600 text-2xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center text-sm text-orange-600">
+                                <i class="fas fa-exclamation-circle mr-1"></i>
+                                <span>Requires attention</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Verified</p>
+                                    <p class="text-3xl font-bold text-eco-600 mt-1" id="stat-verified">0</p>
+                                </div>
+                                <div class="w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-check-circle text-eco-600 text-2xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center text-sm text-green-600">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                <span id="verified-trend">0% this week</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Resolved</p>
+                                    <p class="text-3xl font-bold text-purple-600 mt-1" id="stat-resolved">0</p>
+                                </div>
+                                <div class="w-14 h-14 bg-purple-50 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-check-double text-purple-600 text-2xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center text-sm text-gray-500">
+                                <span id="resolution-rate">0% resolution rate</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row - PIE AND BAR CHARTS -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- PIE CHART: Status Distribution -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-gray-800">Report Status Distribution</h3>
+                                <button onclick="refreshCharts()" class="text-gray-400 hover:text-admin-600 transition-colors" title="Refresh Data">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="statusPieChart"></canvas>
+                            </div>
+                            <div class="mt-4 grid grid-cols-3 gap-4 text-center">
+                                <div class="p-3 bg-orange-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-orange-600" id="pie-pending">0</p>
+                                    <p class="text-xs text-gray-600 uppercase">Pending</p>
+                                </div>
+                                <div class="p-3 bg-green-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-green-600" id="pie-verified">0</p>
+                                    <p class="text-xs text-gray-600 uppercase">Verified</p>
+                                </div>
+                                <div class="p-3 bg-purple-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-purple-600" id="pie-resolved">0</p>
+                                    <p class="text-xs text-gray-600 uppercase">Resolved</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BAR CHART: Daily/Weekly Activity -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-gray-800">Submission Activity (Last 7 Days)</h3>
+                                <select id="barChartPeriod" onchange="updateBarChart()" class="text-sm border border-gray-200 rounded-lg px-3 py-1 focus:border-admin-500 outline-none">
+                                    <option value="7">Last 7 Days</option>
+                                    <option value="30">Last 30 Days</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="activityBarChart"></canvas>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+                                <span>Total Submissions: <strong id="bar-total" class="text-admin-800">0</strong></span>
+                                <span>Average: <strong id="bar-avg" class="text-admin-800">0</strong> per day</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Analytics Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- User Activity Chart -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Top Contributors</h3>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="usersBarChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Hourly Distribution -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-2">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Submission Patterns by Hour</h3>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="hourlyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-bold text-gray-800">Recent Reports</h3>
+                            <button onclick="showSection('reports')" class="text-sm text-admin-600 hover:text-admin-700 font-medium">View All</button>
+                        </div>
+                        <div class="divide-y divide-gray-200" id="recent-activity-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REPORTS SECTION -->
+                <div id="section-reports" class="hidden fade-in">
+                    <!-- Filters -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 p-4">
+                        <div class="flex flex-wrap gap-4 items-center justify-between">
+                            <div class="flex gap-2">
+                                <button onclick="filterReports('all')" class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium bg-admin-100 text-admin-700 border border-admin-200" data-filter="all">All Reports</button>
+                                <button onclick="filterReports('pending')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 border border-transparent" data-filter="pending">Pending</button>
+                                <button onclick="filterReports('verified')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 border border-transparent" data-filter="verified">Verified</button>
+                                <button onclick="filterReports('resolved')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 border border-transparent" data-filter="resolved">Resolved</button>
+                            </div>
+                            <div class="flex gap-2">
+                                <select id="bulk-action" class="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-admin-500 outline-none">
+                                    <option value="">Bulk Actions</option>
+                                    <option value="verify">Mark as Verified</option>
+                                    <option value="resolve">Mark as Resolved</option>
+                                    <option value="delete">Delete Selected</option>
+                                </select>
+                                <button onclick="exportData()" class="px-4 py-2 bg-admin-800 text-white rounded-lg text-sm hover:bg-admin-700 transition-colors">
+                                    <i class="fas fa-download mr-2"></i>Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reports Grid -->
+                    <div id="reports-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="mt-8 flex items-center justify-between">
+                        <p class="text-sm text-gray-600">Showing <span id="showing-start">1</span> to <span id="showing-end">10</span> of <span id="total-entries">0</span> entries</p>
+                        <div class="flex gap-2">
+                            <button class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50" disabled>Previous</button>
+                            <button class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USERS SECTION -->
+                <div id="section-users" class="hidden fade-in">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-bold text-gray-800">Registered Users</h3>
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="search-users" placeholder="Search users..." class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-admin-500 outline-none w-64" onkeyup="searchUsers()">
+                            </div>
+                        </div>
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reports</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200" id="users-table-body">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ANALYTICS SECTION -->
+                <div id="section-analytics" class="hidden fade-in">
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Full Width Charts -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Comprehensive Analytics</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="chart-container">
+                                    <h4 class="text-sm font-medium text-gray-600 mb-2 text-center">Status Overview (Pie Chart)</h4>
+                                    <canvas id="analyticsPieChart"></canvas>
+                                </div>
+                                <div class="chart-container">
+                                    <h4 class="text-sm font-medium text-gray-600 mb-2 text-center">Monthly Trends (Bar Chart)</h4>
+                                    <canvas id="analyticsBarChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Geographic Distribution -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h4 class="font-bold text-gray-800 mb-4">Geographic Distribution</h4>
+                            <div class="h-64 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                                <i class="fas fa-map-marked-alt text-4xl mr-3"></i>
+                                <span>Map visualization would load here</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS SECTION -->
+                <div id="section-settings" class="hidden fade-in">
+                    <div class="max-w-2xl bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">System Settings</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">AI Validation Threshold</label>
+                                <input type="range" min="0" max="100" value="80" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>Lenient</span>
+                                    <span>Strict (80%)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between py-4 border-t border-gray-200">
+                                <div>
+                                    <p class="font-medium text-gray-800">Auto-approve Reports</p>
+                                    <p class="text-sm text-gray-500">Automatically verify reports with high confidence</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-eco-600"></div>
+                                </label>
+                            </div>
+                            
+                            <div class="flex items-center justify-between py-4 border-t border-gray-200">
+                                <div>
+                                    <p class="font-medium text-gray-800">Email Notifications</p>
+                                    <p class="text-sm text-gray-500">Receive alerts for new reports</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-eco-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <button class="px-6 py-2 bg-admin-800 text-white rounded-lg hover:bg-admin-700 transition-colors">
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
+        <div class="relative max-w-5xl w-full">
+            <button onclick="closeModal()" class="absolute -top-12 right-0 text-white hover:text-gray-300 text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modal-image" class="w-full max-h-[80vh] object-contain rounded-lg" onclick="event.stopPropagation()">
+            <div class="mt-4 bg-white bg-opacity-10 backdrop-blur rounded-lg p-4">
+                <p id="modal-caption" class="text-white text-lg"></p>
+                <div class="flex gap-4 mt-2 text-sm text-gray-300">
+                    <span id="modal-author"><i class="fas fa-user mr-1"></i> <span></span></span>
+                    <span id="modal-date"><i class="fas fa-clock mr-1"></i> <span></span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-white rounded-lg shadow-2xl border-l-4 border-eco-500 p-4 flex items-center gap-3 min-w-80">
+            <div class="w-10 h-10 bg-eco-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-check text-eco-600"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-900" id="toast-title">Success</h4>
+                <p class="text-sm text-gray-600" id="toast-message">Operation completed</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Admin State
+        let currentAdmin = null;
+        let reports = [];
+        let users = [];
+        let currentFilter = 'all';
+        
+        // Chart instances
+        let statusPieChart = null;
+        let activityBarChart = null;
+        let usersBarChart = null;
+        let hourlyChart = null;
+        let analyticsPieChart = null;
+        let analyticsBarChart = null;
+
+        // Check session
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedAdmin = sessionStorage.getItem('ecowatch_admin');
+            if (savedAdmin) {
+                currentAdmin = JSON.parse(savedAdmin);
+                showDashboard();
+            }
+        });
+
+        // Admin Auth
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('admin-id').value;
+            const password = document.getElementById('admin-password').value;
+
+            if (id === 'admin' && password === 'admin123') {
+                currentAdmin = { id: 'admin', name: 'Super Administrator', role: 'super' };
+                sessionStorage.setItem('ecowatch_admin', JSON.stringify(currentAdmin));
+                showToast('Welcome', 'Access granted to admin dashboard');
+                showDashboard();
+            } else {
+                const btn = e.target.querySelector('button[type="submit"]');
+                btn.classList.add('animate-bounce');
+                setTimeout(() => btn.classList.remove('animate-bounce'), 1000);
+                alert('Invalid credentials. Try admin/admin123');
+            }
+        }
+
+        function toggleAdminPassword() {
+            const input = document.getElementById('admin-password');
+            const icon = document.getElementById('admin-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('admin-login').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.remove('hidden');
+            document.getElementById('admin-name').textContent = currentAdmin.name;
+            loadData();
+        }
+
+        function adminLogout() {
+            currentAdmin = null;
+            sessionStorage.removeItem('ecowatch_admin');
+            location.reload();
+        }
+
+        // Data Loading
+        function loadData() {
+            reports = JSON.parse(localStorage.getItem('ecowatch_reports')) || [];
+            users = JSON.parse(localStorage.getItem('ecowatch_users')) || [];
+            
+            // Add demo data if empty for visualization
+            if (reports.length === 0) {
+                generateDemoData();
+            }
+            
+            updateStats();
+            renderRecentActivity();
+            renderReports();
+            renderUsers();
+            initCharts();
+        }
+
+        function generateDemoData() {
+            const statuses = ['pending', 'verified', 'resolved'];
+            const now = new Date();
+            
+            for (let i = 0; i < 25; i++) {
+                const daysAgo = Math.floor(Math.random() * 30);
+                const date = new Date(now);
+                date.setDate(date.getDate() - daysAgo);
+                
+                reports.push({
+                    id: Date.now() + i,
+                    userEmail: `user${Math.floor(Math.random() * 5) + 1}@demo.com`,
+                    userName: `User ${Math.floor(Math.random() * 5) + 1}`,
+                    image: `https://picsum.photos/400/300?random=${i}`,
+                    comment: `Environmental issue report #${i + 1}: ${['Illegal logging', 'Water pollution', 'Wildlife disturbance', 'Forest fire risk', 'Trash dumping'][Math.floor(Math.random() * 5)]} detected in sector ${Math.floor(Math.random() * 10) + 1}.`,
+                    timestamp: date.toISOString(),
+                    status: statuses[Math.floor(Math.random() * statuses.length)],
+                    location: `Zone ${String.fromCharCode(65 + Math.floor(Math.random() * 5))}-${Math.floor(Math.random() * 100)}`
+                });
+            }
+            
+            localStorage.setItem('ecowatch_reports', JSON.stringify(reports));
+        }
+
+        // Statistics Calculation
+        function updateStats() {
+            const total = reports.length;
+            const pending = reports.filter(r => r.status === 'pending').length;
+            const verified = reports.filter(r => r.status === 'verified').length;
+            const resolved = reports.filter(r => r.status === 'resolved').length;
+            
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-pending').textContent = pending;
+            document.getElementById('stat-verified').textContent = verified;
+            document.getElementById('stat-resolved').textContent = resolved;
+            document.getElementById('sidebar-count').textContent = pending;
+            
+            // Update trend indicators
+            const thisWeek = reports.filter(r => {
+                const days = (new Date() - new Date(r.timestamp)) / 86400000;
+                return days <= 7;
+            }).length;
+            
+            document.getElementById('total-trend').textContent = `+${thisWeek} this week`;
+            document.getElementById('verified-trend').textContent = `${Math.round((verified/total)*100) || 0}% verified`;
+            document.getElementById('resolution-rate').textContent = `${Math.round((resolved/total)*100) || 0}% resolution rate`;
+            
+            // Update pie chart legend numbers
+            document.getElementById('pie-pending').textContent = pending;
+            document.getElementById('pie-verified').textContent = verified;
+            document.getElementById('pie-resolved').textContent = resolved;
+        }
+
+        // Chart Initialization
+        function initCharts() {
+            initPieChart();
+            initBarChart();
+            initUsersChart();
+            initHourlyChart();
+        }
+
+        function initPieChart() {
+            const ctx = document.getElementById('statusPieChart').getContext('2d');
+            const pending = reports.filter(r => r.status === 'pending').length;
+            const verified = reports.filter(r => r.status === 'verified').length;
+            const resolved = reports.filter(r => r.status === 'resolved').length;
+            
+            if (statusPieChart) statusPieChart.destroy();
+            
+            statusPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Pending', 'Verified', 'Resolved'],
+                    datasets: [{
+                        data: [pending, verified, resolved],
+                        backgroundColor: [
+                            '#f97316', // Orange for pending
+                            '#22c55e', // Green for verified
+                            '#9333ea'  // Purple for resolved
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initBarChart() {
+            const ctx = document.getElementById('activityBarChart').getContext('2d');
+            const days = 7;
+            const labels = [];
+            const data = [];
+            
+            // Generate last 7 days labels and data
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
+                
+                const count = reports.filter(r => {
+                    const reportDate = new Date(r.timestamp);
+                    return reportDate.toDateString() === date.toDateString();
+                }).length;
+                data.push(count);
+            }
+            
+            // Update stats
+            const total = data.reduce((a, b) => a + b, 0);
+            const avg = (total / days).toFixed(1);
+            document.getElementById('bar-total').textContent = total;
+            document.getElementById('bar-avg').textContent = avg;
+            
+            if (activityBarChart) activityBarChart.destroy();
+            
+            activityBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Reports Submitted',
+                        data: data,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Reports: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initUsersChart() {
+            const ctx = document.getElementById('usersBarChart').getContext('2d');
+            
+            // Count reports per user
+            const userCounts = {};
+            reports.forEach(r => {
+                const name = r.userName || 'Anonymous';
+                userCounts[name] = (userCounts[name] || 0) + 1;
+            });
+            
+            // Sort and get top 5
+            const sorted = Object.entries(userCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            if (usersBarChart) usersBarChart.destroy();
+            
+            usersBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(u => u[0].split(' ')[0]), // First name only
+                    datasets: [{
+                        label: 'Reports',
+                        data: sorted.map(u => u[1]),
+                        backgroundColor: '#22c55e',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        function initHourlyChart() {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            
+            // Group by hour
+            const hourlyData = new Array(24).fill(0);
+            reports.forEach(r => {
+                const hour = new Date(r.timestamp).getHours();
+                hourlyData[hour]++;
+            });
+            
+            const labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+            
+            if (hourlyChart) hourlyChart.destroy();
+            
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Submissions',
+                        data: hourlyData,
+                        backgroundColor: hourlyData.map((_, i) => 
+                            i >= 9 && i <= 17 ? '#22c55e' : '#94a3b8'
+                        ),
+                        borderRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { 
+                            ticks: { 
+                                callback: function(val, index) {
+                                    return index % 3 === 0 ? this.getLabelForValue(val) : '';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function refreshCharts() {
+            loadData();
+            showToast('Refreshed', 'Charts updated with latest data');
+        }
+
+        function updateBarChart() {
+            const period = document.getElementById('barChartPeriod').value;
+            const ctx = document.getElementById('activityBarChart').getContext('2d');
+            const days = parseInt(period);
+            const labels = [];
+            const data = [];
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                
+                const count = reports.filter(r => {
+                    const reportDate = new Date(r.timestamp);
+                    return reportDate.toDateString() === date.toDateString();
+                }).length;
+                data.push(count);
+            }
+            
+            if (activityBarChart) {
+                activityBarChart.data.labels = labels;
+                activityBarChart.data.datasets[0].data = data;
+                activityBarChart.update();
+            }
+        }
+
+        // Navigation
+        function showSection(section) {
+            ['overview', 'reports', 'users', 'analytics', 'settings'].forEach(s => {
+                document.getElementById(`section-${s}`).classList.add('hidden');
+                document.getElementById(`nav-${s}`).classList.remove('active');
+            });
+            
+            document.getElementById(`section-${section}`).classList.remove('hidden');
+            document.getElementById(`nav-${section}`).classList.add('active');
+            
+            const titles = {
+                'overview': 'Dashboard Overview',
+                'reports': 'Environmental Reports',
+                'users': 'User Management',
+                'analytics': 'Analytics & Insights',
+                'settings': 'System Settings'
+            };
+            document.getElementById('page-title').textContent = titles[section];
+            
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+            
+            // Reinitialize analytics charts if section is analytics
+            if (section === 'analytics') {
+                setTimeout(initAnalyticsCharts, 100);
+            }
+        }
+
+        function initAnalyticsCharts() {
+            // Pie chart for analytics page
+            const ctxPie = document.getElementById('analyticsPieChart').getContext('2d');
+            const pending = reports.filter(r => r.status === 'pending').length;
+            const verified = reports.filter(r => r.status === 'verified').length;
+            const resolved = reports.filter(r => r.status === 'resolved').length;
+            
+            if (analyticsPieChart) analyticsPieChart.destroy();
+            
+            analyticsPieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Pending Review', 'Verified', 'Resolved'],
+                    datasets: [{
+                        data: [pending, verified, resolved],
+                        backgroundColor: ['#f97316', '#22c55e', '#9333ea'],
+                        borderWidth: 3,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' },
+                        title: {
+                            display: true,
+                            text: 'Current Report Status Distribution',
+                            font: { size: 14 }
+                        }
+                    }
+                }
+            });
+            
+            // Bar chart for monthly trends
+            const ctxBar = document.getElementById('analyticsBarChart').getContext('2d');
+            const monthlyData = {};
+            
+            reports.forEach(r => {
+                const month = new Date(r.timestamp).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                monthlyData[month] = (monthlyData[month] || 0) + 1;
+            });
+            
+            const sortedMonths = Object.keys(monthlyData).sort((a, b) => 
+                new Date(a) - new Date(b)
+            ).slice(-6); // Last 6 months
+            
+            if (analyticsBarChart) analyticsBarChart.destroy();
+            
+            analyticsBarChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: sortedMonths,
+                    datasets: [{
+                        label: 'Total Reports',
+                        data: sortedMonths.map(m => monthlyData[m]),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Monthly Submission Trends',
+                            font: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        }
+
+        // Reports Management
+        function renderRecentActivity() {
+            const container = document.getElementById('recent-activity-list');
+            const recent = reports.slice(0, 5);
+            
+            container.innerHTML = recent.map(report => `
+                <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <img src="${report.image}" class="w-12 h-12 rounded-lg object-cover" alt="">
+                        <div>
+                            <p class="text-sm font-medium text-gray-900 line-clamp-1">${report.comment}</p>
+                            <p class="text-xs text-gray-500">by ${report.userName || 'Anonymous'} • ${formatDate(report.timestamp)}</p>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(report.status)}">
+                        ${report.status}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function renderReports() {
+            const grid = document.getElementById('reports-grid');
+            let filtered = reports;
+            
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(r => r.status === currentFilter);
+            }
+            
+            document.getElementById('total-entries').textContent = filtered.length;
+            
+            grid.innerHTML = filtered.map(report => `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300">
+                    <div class="relative h-48 overflow-hidden cursor-pointer" onclick="openModal('${report.image}', '${report.comment.replace(/'/g, "\\'")}', '${report.userName}', '${report.timestamp}')">
+                        <img src="${report.image}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="Report">
+                        <div class="absolute top-3 right-3">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${getStatusClass(report.status)}">
+                                ${report.status}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex items-center gap-2 mb-3 text-sm text-gray-500">
+                            <i class="fas fa-user text-eco-500"></i>
+                            <span>${report.userName || 'Anonymous'}</span>
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-clock text-gray-400"></i>
+                            <span>${formatDate(report.timestamp)}</span>
+                        </div>
+                        <p class="text-gray-700 text-sm line-clamp-3 mb-4 leading-relaxed">${report.comment}</p>
+                        <div class="flex gap-2 pt-4 border-t border-gray-100">
+                            ${report.status !== 'verified' ? `
+                                <button onclick="updateStatus(${report.id}, 'verified')" class="flex-1 py-2 bg-eco-50 text-eco-700 rounded-lg text-sm font-medium hover:bg-eco-100 transition-colors">
+                                    <i class="fas fa-check mr-1"></i> Verify
+                                </button>
+                            ` : ''}
+                            ${report.status !== 'resolved' ? `
+                                <button onclick="updateStatus(${report.id}, 'resolved')" class="flex-1 py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-100 transition-colors">
+                                    <i class="fas fa-check-double mr-1"></i> Resolve
+                                </button>
+                            ` : ''}
+                            <button onclick="deleteReport(${report.id})" class="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'pending': 'bg-orange-100 text-orange-700',
+                'verified': 'bg-green-100 text-green-700',
+                'resolved': 'bg-purple-100 text-purple-700'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-700';
+        }
+
+        function filterReports(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.filter === filter) {
+                    btn.classList.add('bg-admin-100', 'text-admin-700', 'border-admin-200');
+                    btn.classList.remove('text-gray-600', 'border-transparent');
+                } else {
+                    btn.classList.remove('bg-admin-100', 'text-admin-700', 'border-admin-200');
+                    btn.classList.add('text-gray-600', 'border-transparent');
+                }
+            });
+            renderReports();
+        }
+
+        function updateStatus(id, status) {
+            const report = reports.find(r => r.id === id);
+            if (report) {
+                report.status = status;
+                localStorage.setItem('ecowatch_reports', JSON.stringify(reports));
+                loadData();
+                showToast('Status Updated', `Report #${id} marked as ${status}`);
+            }
+        }
+
+        function deleteReport(id) {
+            if (confirm('Are you sure you want to delete this report?')) {
+                reports = reports.filter(r => r.id !== id);
+                localStorage.setItem('ecowatch_reports', JSON.stringify(reports));
+                loadData();
+                showToast('Deleted', 'Report has been removed');
+            }
+        }
+
+        // Users Management
+        function renderUsers() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = users.map(user => {
+                const userReports = reports.filter(r => r.userEmail === user.email).length;
+                return `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-eco-100 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-eco-700 font-bold text-sm">${user.firstName[0]}${user.lastName[0]}</span>
+                                </div>
+                                <div class="text-sm font-medium text-gray-900">${user.firstName} ${user.lastName}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.email}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${userReports} reports</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(user.createdAt)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-admin-600 hover:text-admin-900 mr-3"><i class="fas fa-edit"></i></button>
+                            <button class="text-red-600 hover:text-red-900"><i class="fas fa-ban"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function searchUsers() {
+            const term = document.getElementById('search-users').value.toLowerCase();
+            const rows = document.querySelectorAll('#users-table-body tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        }
+
+        // Utilities
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            const days = Math.floor(diff / 86400000);
+            
+            if (days === 0) return 'Today';
+            if (days === 1) return 'Yesterday';
+            if (days < 7) return `${days} days ago`;
+            return date.toLocaleDateString();
+        }
+
+        function openModal(imageSrc, caption, author, date) {
+            document.getElementById('modal-image').src = imageSrc;
+            document.getElementById('modal-caption').textContent = caption;
+            document.querySelector('#modal-author span').textContent = author || 'Anonymous';
+            document.querySelector('#modal-date span').textContent = formatDate(date);
+            document.getElementById('image-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('image-modal').classList.add('hidden');
+        }
+
+        function showToast(title, message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(reports, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `ecowatch-reports-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            showToast('Export Complete', 'Reports data downloaded');
+        }
+    </script>
+</body>
+</html>

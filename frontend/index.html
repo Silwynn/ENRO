@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoWatch - User Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        eco: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'shake': 'shake 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '25%': { transform: 'translateX(-10px)' },
+                            '75%': { transform: 'translateX(10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #22c55e, transparent);
+            animation: scan 2s linear infinite;
+            top: 0;
+        }
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        .drop-zone.dragover {
+            border-color: #22c55e;
+            background-color: #f0fdf4;
+            transform: scale(1.02);
+        }
+        .leaf-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2316a34a' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .auth-input:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-eco-50 min-h-screen leaf-pattern">
+
+    <!-- AUTHENTICATION SECTION -->
+    <section id="auth-section" class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <!-- Logo -->
+            <div class="text-center mb-8 animate-slide-up">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-eco-400 to-eco-600 rounded-full mb-4 shadow-lg animate-bounce-slow">
+                    <i class="fas fa-leaf text-white text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-eco-900">EcoWatch</h1>
+                <p class="text-gray-600 mt-2">Protecting our natural resources together</p>
+            </div>
+
+            <!-- Auth Card -->
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-eco-100 animate-slide-up" style="animation-delay: 0.1s">
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-100">
+                    <button onclick="switchAuthTab('login')" id="tab-login" class="flex-1 py-4 text-center font-semibold text-eco-700 border-b-2 border-eco-500 bg-eco-50 transition-all">
+                        Sign In
+                    </button>
+                    <button onclick="switchAuthTab('register')" id="tab-register" class="flex-1 py-4 text-center font-semibold text-gray-500 border-b-2 border-transparent hover:text-eco-600 transition-all">
+                        Create Account
+                    </button>
+                </div>
+
+                <div class="p-8">
+                    <!-- Login Form -->
+                    <form id="login-form" onsubmit="handleLogin(event)" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                            <div class="relative">
+                                <i class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="email" id="login-email" required class="auth-input w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-200 outline-none transition-all" placeholder="user@example.com">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <div class="relative">
+                                <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="password" id="login-password" required class="auth-input w-full pl-12 pr-12 py-3 rounded-xl border border-gray-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-200 outline-none transition-all" placeholder="••••••••">
+                                <button type="button" onclick="togglePassword('login-password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-eco-600">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="w-4 h-4 text-eco-600 rounded border-gray-300 focus:ring-eco-500">
+                                <span class="text-gray-600">Remember me</span>
+                            </label>
+                            <a href="#" class="text-eco-600 hover:text-eco-700 font-medium">Forgot password?</a>
+                        </div>
+                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-eco-600 to-eco-700 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-eco-200 transition-all transform hover:-translate-y-0.5">
+                            Sign In
+                        </button>
+                    </form>
+
+                    <!-- Register Form -->
+                    <form id="register-form" onsubmit="handleRegister(event)" class="hidden space-y-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                                <input type="text" id="reg-firstname" required class="auth-input w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-200 outline-none transition-all" placeholder="First name">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                <input type="text" id="reg-lastname" required class="auth-input w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-200 outline-none transition-all" placeholder="Last name">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                            <div class="relative">
+                                <i class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="email" id="reg-email" required class="auth-input w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-200 outline-none transition-all" placeholder="user@example.com">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <div class="relative">
+                                <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="password" id="reg-password" required minlength="6" class="auth-input w-full pl-12 pr-12 py-3 rounded-xl border border-gray-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-200 outline-none transition-all" placeholder="Min 6 characters">
+                                <button type="button" onclick="togglePassword('reg-password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-eco-600">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                            <input type="password" id="reg-confirm" required class="auth-input w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-200 outline-none transition-all" placeholder="Confirm password">
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <input type="checkbox" id="reg-terms" required class="mt-1 w-4 h-4 text-eco-600 rounded border-gray-300 focus:ring-eco-500">
+                            <label class="text-sm text-gray-600">
+                                I agree to the <a href="#" class="text-eco-600 hover:underline">Terms of Service</a> and <a href="#" class="text-eco-600 hover:underline">Privacy Policy</a>
+                            </label>
+                        </div>
+                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-eco-600 to-eco-700 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-eco-200 transition-all transform hover:-translate-y-0.5">
+                            Create Account
+                        </button>
+                    </form>
+
+                    <div class="mt-6 text-center">
+                        <p class="text-sm text-gray-500">Are you an administrator?</p>
+                        <a href="admin.html" class="inline-flex items-center gap-2 mt-2 text-eco-600 hover:text-eco-700 font-medium transition-colors">
+                            <i class="fas fa-shield-alt"></i>
+                            Access Admin Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN APPLICATION (Hidden until logged in) -->
+    <section id="app-section" class="hidden">
+        <!-- Navigation -->
+        <nav class="fixed w-full z-50 glass-effect border-b border-eco-200 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-eco-400 to-eco-600 rounded-full flex items-center justify-center shadow-lg">
+                            <i class="fas fa-leaf text-white text-lg"></i>
+                        </div>
+                        <span class="text-2xl font-bold text-eco-900 tracking-tight">EcoWatch</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="hidden md:flex items-center gap-3 px-4 py-2 bg-eco-50 rounded-full border border-eco-200">
+                            <div class="w-8 h-8 bg-eco-200 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-eco-700"></i>
+                            </div>
+                            <span class="text-sm font-medium text-eco-800" id="user-display-name">User</span>
+                        </div>
+                        <button onclick="logout()" class="p-2 text-gray-600 hover:text-red-600 transition-colors" title="Logout">
+                            <i class="fas fa-sign-out-alt text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+            <!-- Welcome Banner -->
+            <div class="bg-gradient-to-r from-eco-600 to-eco-700 rounded-2xl p-6 mb-8 text-white shadow-lg animate-slide-up">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-1">Welcome back, <span id="welcome-name">User</span>! 👋</h2>
+                        <p class="text-eco-100">Help us monitor and protect natural resources in your area.</p>
+                    </div>
+                    <div class="hidden sm:block text-right">
+                        <div class="text-3xl font-bold" id="user-report-count">0</div>
+                        <div class="text-sm text-eco-100">Your Reports</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Card -->
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-eco-100 animate-slide-up" style="animation-delay: 0.1s">
+                <div class="bg-gradient-to-r from-eco-600 to-eco-700 px-6 py-4">
+                    <h2 class="text-white font-semibold text-lg flex items-center gap-2">
+                        <i class="fas fa-upload"></i> Submit Environmental Report
+                    </h2>
+                </div>
+
+                <div class="p-6 md:p-8 space-y-6">
+                    <!-- Upload Zone -->
+                    <div id="upload-zone" class="drop-zone relative border-3 border-dashed border-eco-300 rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer hover:border-eco-500 hover:bg-eco-50 group">
+                        <input type="file" id="file-input" class="hidden" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
+                        
+                        <div id="upload-placeholder" class="space-y-4">
+                            <div class="w-20 h-20 mx-auto bg-eco-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-eco-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-lg font-semibold text-gray-700 mb-1">Drop your photo here or click to browse</p>
+                                <p class="text-sm text-gray-500">Supports JPG, PNG, WEBP (Max 10MB)</p>
+                            </div>
+                            <div class="flex justify-center gap-4 mt-4">
+                                <button onclick="document.getElementById('file-input').click()" class="px-4 py-2 bg-eco-100 text-eco-700 rounded-lg font-medium hover:bg-eco-200 transition-colors">
+                                    <i class="fas fa-folder-open mr-2"></i>Gallery
+                                </button>
+                                <button onclick="triggerCamera()" class="px-4 py-2 bg-eco-600 text-white rounded-lg font-medium hover:bg-eco-700 transition-colors shadow-lg shadow-eco-200">
+                                    <i class="fas fa-camera mr-2"></i>Camera
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Preview Container -->
+                        <div id="image-preview-container" class="hidden relative">
+                            <img id="image-preview" class="max-h-64 mx-auto rounded-lg shadow-lg object-cover" alt="Preview">
+                            <button onclick="removeImage()" class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors flex items-center justify-center shadow-lg">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <div id="validation-badge" class="absolute bottom-2 left-2 hidden">
+                                <span class="px-3 py-1 bg-eco-500 text-white text-sm rounded-full font-medium shadow-lg">
+                                    <i class="fas fa-check-circle mr-1"></i>Verified
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Scanning Overlay -->
+                        <div id="scanning-overlay" class="hidden absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center">
+                            <div class="text-center text-white">
+                                <div class="relative w-32 h-32 mx-auto mb-4 border-2 border-eco-400 rounded-lg overflow-hidden">
+                                    <img id="scan-image" class="w-full h-full object-cover opacity-50">
+                                    <div class="scan-line"></div>
+                                </div>
+                                <p class="font-semibold animate-pulse">Analyzing image...</p>
+                                <p class="text-sm text-gray-300 mt-1">Checking for natural resources content</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Validation Message -->
+                    <div id="validation-message" class="hidden rounded-lg p-4 text-center font-medium"></div>
+
+                    <!-- Comment Section -->
+                    <div id="comment-section" class="hidden space-y-3 animate-fade-in">
+                        <label class="block text-sm font-semibold text-gray-700">
+                            <i class="fas fa-comment-alt text-eco-600 mr-2"></i>Describe the Issue
+                        </label>
+                        <textarea id="issue-comment" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-eco-500 focus:ring-2 focus:ring-eco-200 outline-none transition-all resize-none" placeholder="Describe what you see in the image. For example: 'Illegal logging activity spotted near the river bank...'"></textarea>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>Min 10 characters</span>
+                            <span id="char-count">0/500</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button id="submit-btn" onclick="submitReport()" disabled class="w-full py-4 bg-gray-300 text-gray-500 rounded-xl font-bold text-lg transition-all duration-300 cursor-not-allowed flex items-center justify-center gap-2">
+                        <span>Submit Report</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+
+                    <!-- Progress -->
+                    <div id="upload-progress" class="hidden space-y-2">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-eco-600 h-2 rounded-full transition-all duration-300" style="width: 0%" id="progress-bar"></div>
+                        </div>
+                        <p class="text-center text-sm text-gray-600" id="progress-text">Uploading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Reports History -->
+            <div class="mt-12">
+                <h3 class="text-xl font-bold text-eco-900 mb-6 flex items-center gap-2">
+                    <i class="fas fa-history text-eco-600"></i> My Recent Reports
+                </h3>
+                <div class="grid md:grid-cols-2 gap-4" id="my-reports">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-white rounded-lg shadow-2xl border-l-4 border-eco-500 p-4 flex items-center gap-3 min-w-80">
+            <div class="w-10 h-10 bg-eco-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-check text-eco-600"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-900" id="toast-title">Success</h4>
+                <p class="text-sm text-gray-600" id="toast-message">Report submitted successfully</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let currentUser = null;
+        let currentImage = null;
+        let isImageValid = false;
+        let allReports = JSON.parse(localStorage.getItem('ecowatch_reports')) || [];
+        let users = JSON.parse(localStorage.getItem('ecowatch_users')) || [];
+
+        // Initialize demo data
+        if (users.length === 0) {
+            users.push({
+                email: 'demo@ecowatch.com',
+                password: 'demo123',
+                firstName: 'Demo',
+                lastName: 'User',
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('ecowatch_users', JSON.stringify(users));
+        }
+
+        // Check session on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedUser = sessionStorage.getItem('ecowatch_current_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showApp();
+            }
+            setupDragAndDrop();
+            
+            document.getElementById('issue-comment').addEventListener('input', function() {
+                document.getElementById('char-count').textContent = `${this.value.length}/500`;
+                validateForm();
+            });
+        });
+
+        // Auth Functions
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const loginTab = document.getElementById('tab-login');
+            const registerTab = document.getElementById('tab-register');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                loginTab.classList.add('text-eco-700', 'border-eco-500', 'bg-eco-50');
+                loginTab.classList.remove('text-gray-500', 'border-transparent');
+                registerTab.classList.remove('text-eco-700', 'border-eco-500', 'bg-eco-50');
+                registerTab.classList.add('text-gray-500', 'border-transparent');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                registerTab.classList.add('text-eco-700', 'border-eco-500', 'bg-eco-50');
+                registerTab.classList.remove('text-gray-500', 'border-transparent');
+                loginTab.classList.remove('text-eco-700', 'border-eco-500', 'bg-eco-50');
+                loginTab.classList.add('text-gray-500', 'border-transparent');
+            }
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                sessionStorage.setItem('ecowatch_current_user', JSON.stringify(user));
+                showToast('Welcome Back!', `Hello, ${user.firstName}!`);
+                setTimeout(showApp, 500);
+            } else {
+                showError('login-form', 'Invalid email or password');
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const firstName = document.getElementById('reg-firstname').value;
+            const lastName = document.getElementById('reg-lastname').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const confirm = document.getElementById('reg-confirm').value;
+
+            if (password !== confirm) {
+                showError('register-form', 'Passwords do not match');
+                return;
+            }
+
+            if (users.find(u => u.email === email)) {
+                showError('register-form', 'Email already registered');
+                return;
+            }
+
+            const newUser = {
+                email,
+                password,
+                firstName,
+                lastName,
+                createdAt: new Date().toISOString()
+            };
+
+            users.push(newUser);
+            localStorage.setItem('ecowatch_users', JSON.stringify(users));
+            
+            currentUser = newUser;
+            sessionStorage.setItem('ecowatch_current_user', JSON.stringify(newUser));
+            showToast('Account Created!', 'Welcome to EcoWatch!');
+            setTimeout(showApp, 500);
+        }
+
+        function showError(formId, message) {
+            const form = document.getElementById(formId);
+            form.classList.add('animate-shake');
+            
+            // Remove existing error
+            const existingError = form.querySelector('.auth-error');
+            if (existingError) existingError.remove();
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'auth-error bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2 mt-4';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i>${message}`;
+            form.appendChild(errorDiv);
+
+            setTimeout(() => form.classList.remove('animate-shake'), 500);
+        }
+
+        function showApp() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('app-section').classList.remove('hidden');
+            document.getElementById('user-display-name').textContent = currentUser.firstName;
+            document.getElementById('welcome-name').textContent = currentUser.firstName;
+            updateMyReports();
+        }
+
+        function logout() {
+            currentUser = null;
+            sessionStorage.removeItem('ecowatch_current_user');
+            document.getElementById('app-section').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('login-form').reset();
+            document.getElementById('register-form').reset();
+            removeImage();
+        }
+
+        // File Handling (same as before)
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('upload-zone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+            });
+            dropZone.addEventListener('drop', handleDrop, false);
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) handleFiles(files[0]);
+        }
+
+        function triggerCamera() {
+            const input = document.getElementById('file-input');
+            input.setAttribute('capture', 'environment');
+            input.click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) handleFiles(file);
+        }
+
+        function handleFiles(file) {
+            if (!file.type.startsWith('image/')) {
+                showValidationMessage('Please upload an image file (JPG, PNG, WEBP)', 'error');
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                showValidationMessage('File size must be less than 10MB', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImage = e.target.result;
+                showPreview(currentImage);
+                validateImage(currentImage);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showPreview(imageSrc) {
+            document.getElementById('upload-placeholder').classList.add('hidden');
+            document.getElementById('image-preview-container').classList.remove('hidden');
+            document.getElementById('image-preview').src = imageSrc;
+            document.getElementById('scan-image').src = imageSrc;
+        }
+
+        function removeImage() {
+            currentImage = null;
+            isImageValid = false;
+            document.getElementById('file-input').value = '';
+            document.getElementById('upload-placeholder').classList.remove('hidden');
+            document.getElementById('image-preview-container').classList.add('hidden');
+            document.getElementById('comment-section').classList.add('hidden');
+            document.getElementById('validation-message').classList.add('hidden');
+            document.getElementById('validation-badge').classList.add('hidden');
+            updateSubmitButton();
+        }
+
+        function validateImage(imageSrc) {
+            const overlay = document.getElementById('scanning-overlay');
+            overlay.classList.remove('hidden');
+            
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                const isNaturalResource = simulateAIValidation();
+                
+                if (isNaturalResource) {
+                    isImageValid = true;
+                    showValidationMessage('✓ Image verified as natural resource content', 'success');
+                    document.getElementById('validation-badge').classList.remove('hidden');
+                    document.getElementById('comment-section').classList.remove('hidden');
+                    document.getElementById('comment-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    isImageValid = false;
+                    showValidationMessage('✗ Image rejected: No natural resources detected. Please upload photos of forests, water bodies, wildlife, or environmental issues.', 'error');
+                    document.getElementById('validation-badge').classList.add('hidden');
+                }
+                updateSubmitButton();
+            }, 2000);
+        }
+
+        function simulateAIValidation() {
+            return Math.random() > 0.2;
+        }
+
+        function showValidationMessage(message, type) {
+            const msgEl = document.getElementById('validation-message');
+            msgEl.textContent = message;
+            msgEl.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-eco-100', 'text-eco-700');
+            if (type === 'error') {
+                msgEl.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
+            } else {
+                msgEl.classList.add('bg-eco-100', 'text-eco-700', 'border', 'border-eco-200');
+            }
+        }
+
+        function validateForm() {
+            const comment = document.getElementById('issue-comment').value;
+            const isValid = isImageValid && comment.length >= 10;
+            updateSubmitButton(isValid);
+        }
+
+        function updateSubmitButton(isValid = false) {
+            const btn = document.getElementById('submit-btn');
+            if (isValid && isImageValid) {
+                btn.disabled = false;
+                btn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                btn.classList.add('bg-eco-600', 'text-white', 'hover:bg-eco-700', 'shadow-lg', 'shadow-eco-200');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                btn.classList.remove('bg-eco-600', 'text-white', 'hover:bg-eco-700', 'shadow-lg', 'shadow-eco-200');
+            }
+        }
+
+        function submitReport() {
+            const comment = document.getElementById('issue-comment').value;
+            const progressContainer = document.getElementById('upload-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            progressContainer.classList.remove('hidden');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress > 100) progress = 100;
+                progressBar.style.width = progress + '%';
+                
+                if (progress === 100) {
+                    clearInterval(interval);
+                    setTimeout(() => finalizeSubmission(comment), 500);
+                }
+            }, 200);
+        }
+
+        function finalizeSubmission(comment) {
+            const newReport = {
+                id: Date.now(),
+                userEmail: currentUser.email,
+                userName: `${currentUser.firstName} ${currentUser.lastName}`,
+                image: currentImage,
+                comment: comment,
+                timestamp: new Date().toISOString(),
+                status: 'pending',
+                location: 'User Location ' + Math.floor(Math.random() * 100)
+            };
+            
+            allReports.unshift(newReport);
+            localStorage.setItem('ecowatch_reports', JSON.stringify(allReports));
+            
+            removeImage();
+            document.getElementById('issue-comment').value = '';
+            document.getElementById('char-count').textContent = '0/500';
+            document.getElementById('upload-progress').classList.add('hidden');
+            document.getElementById('progress-bar').style.width = '0%';
+            
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Submit Report</span><i class="fas fa-paper-plane"></i>';
+            
+            showToast('Report Submitted', 'Your environmental report has been sent to administrators.');
+            updateMyReports();
+        }
+
+        function updateMyReports() {
+            const container = document.getElementById('my-reports');
+            const myReports = allReports.filter(r => r.userEmail === currentUser.email).slice(0, 4);
+            
+            document.getElementById('user-report-count').textContent = myReports.length;
+            
+            if (myReports.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 text-center py-8 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
+                        <i class="fas fa-inbox text-4xl mb-2 text-gray-300"></i>
+                        <p>No reports yet. Submit your first environmental issue!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = myReports.map(report => `
+                <div class="bg-white rounded-xl shadow-sm border border-eco-100 overflow-hidden hover:shadow-md transition-all duration-300">
+                    <div class="h-40 overflow-hidden relative">
+                        <img src="${report.image}" class="w-full h-full object-cover" alt="Report">
+                        <span class="absolute top-2 right-2 px-2 py-1 bg-white bg-opacity-90 rounded-full text-xs font-bold ${getStatusColor(report.status)}">
+                            ${report.status}
+                        </span>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-sm text-gray-600 line-clamp-2 mb-2">${report.comment}</p>
+                        <p class="text-xs text-gray-400">${formatDate(report.timestamp)}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'pending': 'text-orange-600',
+                'verified': 'text-eco-600',
+                'resolved': 'text-purple-600'
+            };
+            return colors[status] || 'text-gray-600';
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            const days = Math.floor(diff / 86400000);
+            
+            if (days === 0) return 'Today';
+            if (days === 1) return 'Yesterday';
+            if (days < 7) return `${days} days ago`;
+            return date.toLocaleDateString();
+        }
+
+        function showToast(title, message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
